@@ -28,7 +28,7 @@
 #include <windows.h>
 #include <excpt.h>
 #ifdef __GNUC__
-#include <w32api/excpt.h>
+#include <excpt.h>
 #endif
 
 #ifndef STATUS_DEVICE_DATA_ERROR
