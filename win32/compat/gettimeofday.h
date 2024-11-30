@@ -22,6 +22,9 @@
 #ifndef __GETLOCALTIME_H
 #define __GETLOCALTIME_H
 
+#include <WinSock2.h>
+#include <sys/types.h>
+
 int gettimeofday(struct timeval *tv, struct timezone *tz);
 
 #endif /* __GETLOCALTIME_H */
