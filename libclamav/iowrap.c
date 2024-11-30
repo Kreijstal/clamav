@@ -52,10 +52,10 @@ cl_error_t cli_memcpy(void *target, const void *source, unsigned long size)
 
 #ifdef _WIN32
 #ifdef __GNUC__  /* MinGW */
-    /* MinGW doesn't support __try/__except, use __try1 instead */
-    __try {
+    /* MinGW uses __try1/__except1 for SEH */
+    __try1(filter_memcpy) {
         memcpy(target, source, size);
-    } __except(EXCEPTION_EXECUTE_HANDLER) {
+    } __except1 {
         ret = CL_EACCES;
     }
 #else  /* MSVC */
