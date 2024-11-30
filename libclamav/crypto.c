@@ -72,26 +72,6 @@
 char *strptime(const char *buf, const char *fmt, struct tm *tm);
 #endif
 
-#if defined(_WIN32)
-#ifdef __GNUC__  /* MinGW */
-#define EXCEPTION_PREAMBLE __try1(filter_memcpy) {
-#define EXCEPTION_POSTAMBLE                       \
-    } __except1 {                                \
-        winres = 1;                              \
-    }
-#else  /* MSVC */
-#define EXCEPTION_PREAMBLE __try {
-#define EXCEPTION_POSTAMBLE                                                 \
-    }                                                                       \
-    __except (filter_memcpy(GetExceptionCode(), GetExceptionInformation())) \
-    {                                                                       \
-        winres = 1;                                                         \
-    }
-#endif
-#else
-#define EXCEPTION_PREAMBLE
-#define EXCEPTION_POSTAMBLE
-#endif
 
 #if !defined(MIN)
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
@@ -1185,10 +1165,26 @@ int cl_update_hash(void *ctx, const void *data, size_t sz)
     if (!(ctx) || !(data))
         return -1;
 
-    EXCEPTION_PREAMBLE
+#ifdef _WIN32
+#ifdef __GNUC__  /* MinGW */
+    __try1(filter_memcpy) {
+        if (!EVP_DigestUpdate((EVP_MD_CTX *)ctx, data, sz))
+            return -1;
+    } __except1 {
+        return -1;
+    }
+#else  /* MSVC */
+    __try {
+        if (!EVP_DigestUpdate((EVP_MD_CTX *)ctx, data, sz))
+            return -1;
+    } __except(filter_memcpy(GetExceptionCode(), GetExceptionInformation())) {
+        return -1;
+    }
+#endif
+#else
     if (!EVP_DigestUpdate((EVP_MD_CTX *)ctx, data, sz))
         return -1;
-    EXCEPTION_POSTAMBLE
+#endif
 
     if (winres)
         return -1;
