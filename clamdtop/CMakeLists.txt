@@ -48,7 +48,8 @@ if(WIN32)
             RESOLVED_DEPENDENCIES_VAR _r_deps
             UNRESOLVED_DEPENDENCIES_VAR _u_deps
             DIRECTORIES
-                $<TARGET_FILE_DIR:Curses::curses>
+                ${CMAKE_BINARY_DIR}/bin
+                ${CMAKE_BINARY_DIR}
         )
         foreach(_file ${_r_deps})
             string(TOLOWER ${_file} _file_lower)
