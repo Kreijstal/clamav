@@ -198,7 +198,7 @@ unsigned char *cl_hash_data(const char *alg, const void *buf, size_t len, unsign
 
 #ifdef _WIN32
 #ifdef __GNUC__  /* MinGW */
-        __try1(filter_memcpy) {
+        __try1_hash(filter_memcpy) {
             if (!EVP_DigestUpdate(ctx, (void *)(((unsigned char *)buf) + cur), todo)) {
                 if (!(obuf))
                     free(ret);
@@ -209,7 +209,7 @@ unsigned char *cl_hash_data(const char *alg, const void *buf, size_t len, unsign
                 EVP_MD_CTX_destroy(ctx);
                 return NULL;
             }
-        } __except1 {
+        } __except1_hash {
             winres = 1;
         }
 #else  /* MSVC */
@@ -1220,10 +1220,10 @@ int cl_update_hash(void *ctx, const void *data, size_t sz)
 
 #ifdef _WIN32
 #ifdef __GNUC__  /* MinGW */
-    __try1(filter_memcpy) {
+    __try1_update(filter_memcpy) {
         if (!EVP_DigestUpdate((EVP_MD_CTX *)ctx, data, sz))
             return -1;
-    } __except1 {
+    } __except1_update {
         return -1;
     }
 #else  /* MSVC */
