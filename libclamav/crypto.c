@@ -69,6 +69,17 @@
 #include "iowrap.h"
 
 #if defined(_WIN32)
+#ifdef __GNUC__  /* MinGW */
+#define __try1_hash(filter) \
+    __try1(filter)
+#define __except1_hash \
+    __except1
+
+#define __try1_update(filter) \
+    __try1(filter)
+#define __except1_update \
+    __except1
+#endif
 char *strptime(const char *buf, const char *fmt, struct tm *tm);
 #endif
 
