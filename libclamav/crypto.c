@@ -73,6 +73,13 @@ char *strptime(const char *buf, const char *fmt, struct tm *tm);
 #endif
 
 #if defined(_WIN32)
+#ifdef __GNUC__  /* MinGW */
+#define EXCEPTION_PREAMBLE __try1(filter_memcpy) {
+#define EXCEPTION_POSTAMBLE                       \
+    } __except1 {                                \
+        winres = 1;                              \
+    }
+#else  /* MSVC */
 #define EXCEPTION_PREAMBLE __try {
 #define EXCEPTION_POSTAMBLE                                                 \
     }                                                                       \
@@ -80,6 +87,7 @@ char *strptime(const char *buf, const char *fmt, struct tm *tm);
     {                                                                       \
         winres = 1;                                                         \
     }
+#endif
 #else
 #define EXCEPTION_PREAMBLE
 #define EXCEPTION_POSTAMBLE
