@@ -72,13 +72,14 @@
 #ifdef __GNUC__  /* MinGW */
 #define __try1_hash(filter) \
     { \
+        struct _EXCEPTION_POINTERS *ep = NULL; \
         int __exception_code = 0; \
         __asm__ __volatile__( \
             ".l_startw_hash%=:\n\t" \
             "pushl %%ebp\n\t" \
             "movl %%esp, %%ebp\n\t" \
             : : : "memory"); \
-        if (!(filter(&__exception_code))) { \
+        if (!(filter(__exception_code, ep))) { \
             __asm__ __volatile__(".l_endw_hash%=:\n\t" : : :); \
             goto error_hash; \
         } \
@@ -100,13 +101,14 @@
 
 #define __try1_update(filter) \
     { \
+        struct _EXCEPTION_POINTERS *ep = NULL; \
         int __exception_code = 0; \
         __asm__ __volatile__( \
             ".l_startw_update%=:\n\t" \
             "pushl %%ebp\n\t" \
             "movl %%esp, %%ebp\n\t" \
             : : : "memory"); \
-        if (!(filter(&__exception_code))) { \
+        if (!(filter(__exception_code, ep))) { \
             __asm__ __volatile__(".l_endw_update%=:\n\t" : : :); \
             goto error_update; \
         } \
