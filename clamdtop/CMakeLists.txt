@@ -37,7 +37,9 @@ target_link_libraries( clamdtop
         Curses::curses )
 if(WIN32)
     install(TARGETS clamdtop DESTINATION . COMPONENT programs)
-    install(FILES $<TARGET_PDB_FILE:clamdtop> DESTINATION . OPTIONAL COMPONENT programs)
+    if(MSVC)
+        install(FILES $<TARGET_PDB_FILE:clamdtop> DESTINATION . OPTIONAL COMPONENT programs)
+    endif()
     # Also install shared library (DLL) dependencies
     install(CODE [[
         file(GET_RUNTIME_DEPENDENCIES

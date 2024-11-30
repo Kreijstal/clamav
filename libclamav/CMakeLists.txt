@@ -479,7 +479,9 @@ if(ENABLE_SHARED_LIB)
     endif()
     if(WIN32)
         install( TARGETS clamav DESTINATION . COMPONENT libraries )
-        install( FILES $<TARGET_PDB_FILE:clamav> DESTINATION . OPTIONAL COMPONENT libraries )
+        if(MSVC)
+            install( FILES $<TARGET_PDB_FILE:clamav> DESTINATION . OPTIONAL COMPONENT libraries )
+        endif()
         # Also install shared library (DLL) dependencies
         install( CODE [[
             file(GET_RUNTIME_DEPENDENCIES
