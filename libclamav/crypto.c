@@ -196,7 +196,39 @@ unsigned char *cl_hash_data(const char *alg, const void *buf, size_t len, unsign
     while (cur < len) {
         size_t todo = MIN((unsigned long)EVP_MD_block_size(md), (unsigned long)(len - cur));
 
-        EXCEPTION_PREAMBLE
+#ifdef _WIN32
+#ifdef __GNUC__  /* MinGW */
+        __try1(filter_memcpy) {
+            if (!EVP_DigestUpdate(ctx, (void *)(((unsigned char *)buf) + cur), todo)) {
+                if (!(obuf))
+                    free(ret);
+
+                if ((olen))
+                    *olen = 0;
+
+                EVP_MD_CTX_destroy(ctx);
+                return NULL;
+            }
+        } __except1 {
+            winres = 1;
+        }
+#else  /* MSVC */
+        __try {
+            if (!EVP_DigestUpdate(ctx, (void *)(((unsigned char *)buf) + cur), todo)) {
+                if (!(obuf))
+                    free(ret);
+
+                if ((olen))
+                    *olen = 0;
+
+                EVP_MD_CTX_destroy(ctx);
+                return NULL;
+            }
+        } __except(filter_memcpy(GetExceptionCode(), GetExceptionInformation())) {
+            winres = 1;
+        }
+#endif
+#else
         if (!EVP_DigestUpdate(ctx, (void *)(((unsigned char *)buf) + cur), todo)) {
             if (!(obuf))
                 free(ret);
@@ -207,7 +239,7 @@ unsigned char *cl_hash_data(const char *alg, const void *buf, size_t len, unsign
             EVP_MD_CTX_destroy(ctx);
             return NULL;
         }
-        EXCEPTION_POSTAMBLE
+#endif
 
         if (winres) {
             if (!(obuf))
@@ -317,14 +349,35 @@ unsigned char *cl_hash_file_fd_ctx(EVP_MD_CTX *ctx, int fd, unsigned int *olen)
 #else
     while ((nread = read(fd, buf, blocksize)) > 0) {
 #endif
-        EXCEPTION_PREAMBLE
+#ifdef _WIN32
+#ifdef __GNUC__  /* MinGW */
+        __try1(filter_memcpy) {
+            if (!EVP_DigestUpdate(ctx, buf, nread)) {
+                free(buf);
+                free(hash);
+                return NULL;
+            }
+        } __except1 {
+            winres = 1;
+        }
+#else  /* MSVC */
+        __try {
+            if (!EVP_DigestUpdate(ctx, buf, nread)) {
+                free(buf);
+                free(hash);
+                return NULL;
+            }
+        } __except(filter_memcpy(GetExceptionCode(), GetExceptionInformation())) {
+            winres = 1;
+        }
+#endif
+#else
         if (!EVP_DigestUpdate(ctx, buf, nread)) {
             free(buf);
             free(hash);
-
             return NULL;
         }
-        EXCEPTION_POSTAMBLE
+#endif
 
         if (winres) {
             free(buf);
