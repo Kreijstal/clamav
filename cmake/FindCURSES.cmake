@@ -132,12 +132,33 @@ else()
       set(CURSES_DEFINITIONS ${PC_PDCurses_CFLAGS_OTHER})
 
       if (NOT TARGET Curses::curses)
-        add_library(Curses::curses UNKNOWN IMPORTED)
-        set_target_properties(Curses::curses PROPERTIES
-          INTERFACE_COMPILE_OPTIONS "${PC_PDCurses_CFLAGS_OTHER}"
-          INTERFACE_INCLUDE_DIRECTORIES "${CURSES_INCLUDE_DIRS}"
-          IMPORTED_LOCATION "${CURSES_LIBRARY}"
-        )
+        if(MINGW)
+          add_library(Curses::curses SHARED IMPORTED)
+          get_filename_component(_LIB_DIR "${CURSES_LIBRARY}" DIRECTORY)
+          file(GLOB _DLL_GLOB "${_LIB_DIR}/*curses*.dll")
+          if(_DLL_GLOB)
+            list(GET _DLL_GLOB 0 _DLL_PATH)
+            set_target_properties(Curses::curses PROPERTIES
+              INTERFACE_COMPILE_OPTIONS "${PC_PDCurses_CFLAGS_OTHER}"
+              INTERFACE_INCLUDE_DIRECTORIES "${CURSES_INCLUDE_DIRS}"
+              IMPORTED_LOCATION "${_DLL_PATH}"
+              IMPORTED_IMPLIB "${CURSES_LIBRARY}"
+            )
+          else()
+            set_target_properties(Curses::curses PROPERTIES
+              INTERFACE_COMPILE_OPTIONS "${PC_PDCurses_CFLAGS_OTHER}"
+              INTERFACE_INCLUDE_DIRECTORIES "${CURSES_INCLUDE_DIRS}"
+              IMPORTED_LOCATION "${CURSES_LIBRARY}"
+            )
+          endif()
+        else()
+          add_library(Curses::curses UNKNOWN IMPORTED)
+          set_target_properties(Curses::curses PROPERTIES
+            INTERFACE_COMPILE_OPTIONS "${PC_PDCurses_CFLAGS_OTHER}"
+            INTERFACE_INCLUDE_DIRECTORIES "${CURSES_INCLUDE_DIRS}"
+            IMPORTED_LOCATION "${CURSES_LIBRARY}"
+          )
+        endif()
       endif()
   else()
       message(FATAL_ERROR "Unable to find ncurses or pdcurses")
