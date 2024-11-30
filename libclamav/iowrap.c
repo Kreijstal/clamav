@@ -48,13 +48,23 @@ cl_error_t cli_memcpy(void *target, const void *source, unsigned long size)
     cl_error_t ret = CL_SUCCESS;
 
 #ifdef _WIN32
-    __try {
-#endif
+#ifdef __GNUC__  /* MinGW */
+    /* MinGW doesn't support __try/__except, use __try1 instead */
+    __try1(filter_memcpy) {
         memcpy(target, source, size);
-#ifdef _WIN32
+    }
+    __except1 {
+        ret = CL_EACCES;
+    }
+#else  /* MSVC */
+    __try {
+        memcpy(target, source, size);
     } __except (filter_memcpy(GetExceptionCode(), GetExceptionInformation())) {
         ret = CL_EACCES;
     }
+#endif
+#else
+    memcpy(target, source, size);
 #endif
     return ret;
 }
