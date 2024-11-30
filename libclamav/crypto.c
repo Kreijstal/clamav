@@ -71,14 +71,32 @@
 #if defined(_WIN32)
 #ifdef __GNUC__  /* MinGW */
 #define __try1_hash(filter) \
-    __try1(filter)
+    asm volatile goto(".l_startw_hash:\n\t"); \
+    if (!(filter)) goto error_hash; \
+    asm volatile goto(".l_endw_hash:\n\t" :::: error_hash)
+
 #define __except1_hash \
-    __except1
+    error_hash: \
+    asm volatile goto(".section .text\n\t" \
+                     ".l_exception_hash:\n\t" \
+                     ".long .l_startw_hash-.-4\n\t" \
+                     ".long .l_endw_hash-.-4\n\t" \
+                     ".long .l_exception_hash-.-4\n\t" \
+                     ".previous\n\t")
 
 #define __try1_update(filter) \
-    __try1(filter)
+    asm volatile goto(".l_startw_update:\n\t"); \
+    if (!(filter)) goto error_update; \
+    asm volatile goto(".l_endw_update:\n\t" :::: error_update)
+
 #define __except1_update \
-    __except1
+    error_update: \
+    asm volatile goto(".section .text\n\t" \
+                     ".l_exception_update:\n\t" \
+                     ".long .l_startw_update-.-4\n\t" \
+                     ".long .l_endw_update-.-4\n\t" \
+                     ".long .l_exception_update-.-4\n\t" \
+                     ".previous\n\t")
 #endif
 char *strptime(const char *buf, const char *fmt, struct tm *tm);
 #endif
