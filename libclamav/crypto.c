@@ -71,32 +71,60 @@
 #if defined(_WIN32)
 #ifdef __GNUC__  /* MinGW */
 #define __try1_hash(filter) \
-    asm volatile goto(".l_startw_hash:\n\t"); \
-    if (!(filter)) goto error_hash; \
-    asm volatile goto(".l_endw_hash:\n\t" :::: error_hash)
+    { \
+        int __exception_code = 0; \
+        __asm__ __volatile__( \
+            ".l_startw_hash%=:\n\t" \
+            "pushl %%ebp\n\t" \
+            "movl %%esp, %%ebp\n\t" \
+            : : : "memory"); \
+        if (!(filter(&__exception_code))) { \
+            __asm__ __volatile__(".l_endw_hash%=:\n\t" : : :); \
+            goto error_hash; \
+        } \
+    }
 
 #define __except1_hash \
+    goto end_hash; \
     error_hash: \
-    asm volatile goto(".section .text\n\t" \
-                     ".l_exception_hash:\n\t" \
-                     ".long .l_startw_hash-.-4\n\t" \
-                     ".long .l_endw_hash-.-4\n\t" \
-                     ".long .l_exception_hash-.-4\n\t" \
-                     ".previous\n\t")
+    { \
+        __asm__ __volatile__( \
+            ".section .text\n\t" \
+            ".l_exception_hash%=:\n\t" \
+            ".long .l_startw_hash%=-.+4\n\t" \
+            ".long .l_endw_hash%=-.+4\n\t" \
+            ".previous\n\t" \
+            : : : "memory"); \
+    } \
+    end_hash:
 
 #define __try1_update(filter) \
-    asm volatile goto(".l_startw_update:\n\t"); \
-    if (!(filter)) goto error_update; \
-    asm volatile goto(".l_endw_update:\n\t" :::: error_update)
+    { \
+        int __exception_code = 0; \
+        __asm__ __volatile__( \
+            ".l_startw_update%=:\n\t" \
+            "pushl %%ebp\n\t" \
+            "movl %%esp, %%ebp\n\t" \
+            : : : "memory"); \
+        if (!(filter(&__exception_code))) { \
+            __asm__ __volatile__(".l_endw_update%=:\n\t" : : :); \
+            goto error_update; \
+        } \
+    }
 
 #define __except1_update \
+    goto end_update; \
     error_update: \
-    asm volatile goto(".section .text\n\t" \
-                     ".l_exception_update:\n\t" \
-                     ".long .l_startw_update-.-4\n\t" \
-                     ".long .l_endw_update-.-4\n\t" \
-                     ".long .l_exception_update-.-4\n\t" \
-                     ".previous\n\t")
+    { \
+        __asm__ __volatile__( \
+            ".section .text\n\t" \
+            ".l_exception_update%=:\n\t" \
+            ".long .l_startw_update%=-.+4\n\t" \
+            ".long .l_endw_update%=-.+4\n\t" \
+            ".previous\n\t" \
+            : : : "memory"); \
+    } \
+    end_update:
 #endif
 char *strptime(const char *buf, const char *fmt, struct tm *tm);
 #endif
