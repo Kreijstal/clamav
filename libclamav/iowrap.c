@@ -27,6 +27,9 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <excpt.h>
+#ifdef __GNUC__
+#include <w32api/excpt.h>
+#endif
 
 #ifndef STATUS_DEVICE_DATA_ERROR
 #define STATUS_DEVICE_DATA_ERROR 0xC000009C
@@ -50,10 +53,9 @@ cl_error_t cli_memcpy(void *target, const void *source, unsigned long size)
 #ifdef _WIN32
 #ifdef __GNUC__  /* MinGW */
     /* MinGW doesn't support __try/__except, use __try1 instead */
-    __try1(filter_memcpy) {
+    __try {
         memcpy(target, source, size);
-    }
-    __except1 {
+    } __except(EXCEPTION_EXECUTE_HANDLER) {
         ret = CL_EACCES;
     }
 #else  /* MSVC */
