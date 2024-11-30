@@ -23,9 +23,11 @@
 #include "clamav-config.h"
 #endif
 
+#ifdef __MINGW32__
 #include <WinSock2.h>
 #include <Windows.h>
 #include <sys/types.h>
+#endif
 #include <sys/timeb.h>
 
 #include "gettimeofday.h"
